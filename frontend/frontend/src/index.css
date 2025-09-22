@@ -1,0 +1,275 @@
+/* Import Roboto Mono font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap');
+
+/* Define color variables */
+:root {
+  --colorPrimary: #AAAAAA;
+  /* default text */
+  --colorSecondary: #000000;
+  /* background */
+  --colorPrimaryRGB: 170, 170, 170;
+  --colorBorderRGB: rgba(170, 170, 170, 0.2);
+  --colorSecondaryRGB: 0, 0, 0;
+  --colorHighlight: #FFFFFF;
+  /* brighter text */
+}
+
+/* Global styles */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: var(--colorSecondary);
+  color: var(--colorPrimary);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: none;
+  box-sizing: border-box;
+}
+
+/* App container */
+.app-container {
+  min-height: 100vh;
+}
+
+/* Labels */
+.label {
+  color: var(--colorPrimary);
+  font-weight: 400;
+}
+
+/* Header */
+.header {
+  height: 50px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid var(--colorBorderRGB);
+  font-size: 12px;
+}
+
+/* Right-side section (clock + indicator) */
+.header-right {
+  position: absolute;
+  right: 4rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 12px;
+}
+
+/* Status indicator */
+.status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #FF5555;
+}
+
+.status-indicator.live {
+  background-color: #00FF00;
+}
+
+/* Main layout */
+.body-wrapper {
+  display: flex;
+  height: calc(100vh - 50px);
+}
+
+.left-panel,
+.right-panel {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.left-panel {
+  border-right: 1px solid var(--colorBorderRGB);
+  scrollbar-width: none;
+}
+
+.left-panel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Container fills left panel */
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+
+/* --- MODIFIED STYLES START HERE --- */
+
+/* Input block - three-column row layout */
+.input-block {
+  display: flex;
+  flex-direction: row;
+  background: var(--colorSecondary);
+  border: 1px solid var(--colorBorderRGB);
+  padding: 0.5rem;
+  box-sizing: border-box;
+  min-height: 80px;
+}
+
+/* Highlight block border when any child is focused */
+.input-block:focus-within {
+  border-color: var(--colorPrimary);
+}
+
+/* Styles for each of the three columns */
+.inputs-section,
+.controls-section,
+.list-section {
+  flex: 1;
+  /* Make all columns equal width */
+  padding: 0 0.5rem;
+}
+
+/* Add vertical borders between columns */
+.controls-section,
+.list-section {
+  border-left: 1px solid var(--colorBorderRGB);
+}
+
+/* Column 1: Stack inputs vertically */
+.inputs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* MODIFICATION #1: Align content in the middle column to the top-left */
+.controls-section {
+  display: flex;
+  justify-content: flex-start;
+  /* Aligns content to the left */
+  align-items: flex-start;
+  /* Aligns content to the top */
+}
+
+/* Shared input styles */
+.header-field,
+.input-field {
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  background: var(--colorSecondary);
+  border: none;
+  outline: none;
+  color: var(--colorPrimary);
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  font-weight: 400;
+  box-sizing: border-box;
+}
+
+/* Brighten only the focused input */
+.header-field:focus,
+.input-field:focus {
+  color: var(--colorHighlight);
+}
+
+/* Brighten only the focused input's placeholder */
+.header-field:focus::placeholder,
+.input-field:focus::placeholder {
+  color: var(--colorHighlight);
+}
+
+/* This container now stacks the header above the buttons */
+.context-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 120px;
+  align-items: flex-start;
+  /* LEFT align content */
+}
+
+.context-header {
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  color: var(--colorPrimary);
+  text-align: left;
+  /* ensure header text is left-aligned */
+}
+
+/* MODIFICATION #2: Place buttons side-by-side */
+.context-buttons {
+  display: flex;
+  flex-direction: row;
+  /* Aligns buttons horizontally */
+  gap: 0.25rem;
+}
+
+.add-context-button {
+  padding: 0.25rem 0.5rem;
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  background: var(--colorSecondary);
+  color: var(--colorPrimary);
+  border: 1px solid var(--colorBorderRGB);
+  cursor: pointer;
+}
+
+.add-context-button:focus,
+.add-context-button:hover {
+  color: var(--colorHighlight);
+  border-color: var(--colorPrimary);
+}
+
+/* List of added items in rightmost column */
+.context-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+  word-break: break-all;
+}
+
+.context-item {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* --- MODIFIED STYLES END HERE --- */
+
+
+/* Add button */
+.add-button {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--colorSecondary);
+  border: 1px solid var(--colorBorderRGB);
+  color: var(--colorPrimary);
+  font-family: "Roboto Mono", monospace;
+  font-size: 12px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.add-button:focus,
+.add-button:hover {
+  background: var(--colorPrimary);
+  color: var(--colorSecondary);
+  border-color: var(--colorPrimary);
+}
+
+/* Focus outlines */
+input:focus,
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(var(--colorSecondaryRGB), 0.5);
+}
