@@ -52,6 +52,7 @@ export const InputBlockComponent: FC<InputBlockProps> = ({
                             onClick={() => onAddUrl(index)}
                             onFocus={onFocus}
                             onBlur={onBlur}
+                            onKeyDown={onKeyDown}
                         >
                             ADD URL
                         </button>
@@ -60,6 +61,7 @@ export const InputBlockComponent: FC<InputBlockProps> = ({
                             onClick={() => onAddFile(index)}
                             onFocus={onFocus}
                             onBlur={onBlur}
+                            onKeyDown={onKeyDown}
                         >
                             ADD FILE
                         </button>

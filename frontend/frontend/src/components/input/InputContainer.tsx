@@ -9,14 +9,21 @@ export const InputContainer: FC = () => {
         { header: "", value: "", urls: [], files: [] },
     ]);
 
-    // Refs for headers, inputs, and the add button. Kept in a flat sequence:
-    // [header0, input0, header1, input1, ..., addButton]
     const inputRefs = useRef<(HTMLInputElement | HTMLButtonElement | null)[]>([]);
 
     const clearKeyboardFocusClasses = () => {
-        inputRefs.current.forEach((el) => {
-            if (el && el.classList) el.classList.remove("keyboard-focused");
-        });
+        const focusedEl = document.querySelector(".keyboard-focused");
+        if (focusedEl) {
+            focusedEl.classList.remove("keyboard-focused");
+        }
+    };
+
+    const focusElement = (element: HTMLElement | null) => {
+        if (element) {
+            clearKeyboardFocusClasses();
+            element.focus();
+            element.classList.add("keyboard-focused");
+        }
     };
 
     const handleHeaderChange = (index: number, value: string) => {
@@ -41,92 +48,105 @@ export const InputContainer: FC = () => {
     };
 
     const handleAddFile = (blockIndex: number) => {
-        // This is a placeholder for actual file upload logic
         const newFile = `document_${Date.now()}.pdf`;
         const newBlocks = [...blocks];
         newBlocks[blockIndex].files.push(newFile);
         setBlocks(newBlocks);
     };
 
-
     const addBlock = () => {
-        const currentLength = blocks.length;
         setBlocks((prev) => [...prev, { header: "", value: "", urls: [], files: [] }]);
-
-        requestAnimationFrame(() => {
-            const newAddButtonIndex = (currentLength + 1) * 2;
-            const addButtonEl = inputRefs.current[newAddButtonIndex] as HTMLButtonElement | undefined;
-            if (addButtonEl) {
-                addButtonEl.focus();
-                clearKeyboardFocusClasses();
-                addButtonEl.classList.add("keyboard-focused");
-            }
-        });
     };
 
     const handleKeyDown = (
         e: React.KeyboardEvent<HTMLInputElement | HTMLButtonElement>
     ) => {
-        const inputs = inputRefs.current.filter(Boolean) as (
-            | HTMLInputElement
-            | HTMLButtonElement
-        )[];
+        const { key } = e;
+        if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) return;
 
-        const flatIndex = inputs.indexOf(e.currentTarget as HTMLInputElement | HTMLButtonElement);
+        const currentElement = e.currentTarget as HTMLElement;
+        const allBlocks = Array.from(document.querySelectorAll<HTMLElement>('.input-block'));
+        const inputBlock = currentElement.closest<HTMLElement>(".input-block");
+        const blockIndex = inputBlock ? allBlocks.indexOf(inputBlock) : -1;
 
-        if (e.key === "ArrowDown") {
-            e.preventDefault();
-            if (flatIndex >= 0 && flatIndex < inputs.length - 1) {
-                const next = inputs[flatIndex + 1] as HTMLElement;
-                next.focus();
-                clearKeyboardFocusClasses();
-                next.classList.add("keyboard-focused");
+        e.preventDefault();
+
+        // --- Vertical Navigation ---
+        if (key === 'ArrowUp' || key === 'ArrowDown') {
+            let targetElement: HTMLElement | null = null;
+
+            if (currentElement.classList.contains('header-field') && key === 'ArrowDown') {
+                targetElement = inputBlock?.querySelector<HTMLInputElement>('.input-field');
+            } else if (currentElement.classList.contains('input-field') && key === 'ArrowUp') {
+                targetElement = inputBlock?.querySelector<HTMLInputElement>('.header-field');
             }
+            else {
+                const direction = key === 'ArrowUp' ? -1 : 1;
+                const targetBlockIndex = blockIndex + direction;
+
+                if (blockIndex !== -1 && targetBlockIndex >= 0 && targetBlockIndex < allBlocks.length) {
+                    const targetBlock = allBlocks[targetBlockIndex];
+
+                    if (currentElement.classList.contains('input-field') && key === 'ArrowDown') {
+                        targetElement = targetBlock.querySelector<HTMLInputElement>('.header-field');
+                    } else if (currentElement.classList.contains('header-field') && key === 'ArrowUp') {
+                        targetElement = targetBlock.querySelector<HTMLInputElement>('.input-field');
+                    } else if (currentElement.classList.contains('add-context-button')) {
+                        const buttons = Array.from(inputBlock.querySelectorAll<HTMLButtonElement>('.add-context-button'));
+                        const buttonIndex = buttons.indexOf(currentElement as HTMLButtonElement);
+                        const targetButtons = targetBlock.querySelectorAll<HTMLButtonElement>('.add-context-button');
+                        if (targetButtons[buttonIndex]) {
+                            targetElement = targetButtons[buttonIndex];
+                        }
+                    }
+                }
+                else if (key === 'ArrowDown' && blockIndex === allBlocks.length - 1) {
+                    targetElement = document.querySelector<HTMLButtonElement>('.add-button');
+                }
+                else if (key === 'ArrowUp' && currentElement.classList.contains('add-button')) {
+                    const lastBlock = allBlocks[allBlocks.length - 1];
+                    if (lastBlock) {
+                        targetElement = lastBlock.querySelector<HTMLInputElement>('.input-field');
+                    }
+                }
+            }
+            focusElement(targetElement);
         }
 
-        if (e.key === "ArrowUp") {
-            e.preventDefault();
-            if (flatIndex > 0) {
-                const prev = inputs[flatIndex - 1] as HTMLElement;
-                prev.focus();
-                clearKeyboardFocusClasses();
-                prev.classList.add("keyboard-focused");
+        // --- Horizontal Navigation ---
+        if (inputBlock && (key === 'ArrowLeft' || key === 'ArrowRight')) {
+            // If on Header or Prompt, ArrowRight goes to the first button
+            if ((currentElement.classList.contains("header-field") || currentElement.classList.contains("input-field")) && key === 'ArrowRight') {
+                const firstButton = inputBlock.querySelector<HTMLButtonElement>(".add-context-button");
+                focusElement(firstButton);
             }
-        }
+            // Handle navigation between buttons or back to the prompt
+            else if (currentElement.classList.contains("add-context-button")) {
+                const buttons = Array.from(inputBlock.querySelectorAll<HTMLButtonElement>(".add-context-button"));
+                const currentIndex = buttons.indexOf(currentElement as HTMLButtonElement);
 
-        if (e.key === "ArrowRight") {
-            // If currently on a prompt input, move focus to first context button
-            const currentElement = e.currentTarget as HTMLElement;
-            if (currentElement.classList.contains("input-field")) {
-                const inputBlock = currentElement.closest(".input-block");
-                if (inputBlock) {
-                    const firstButton = inputBlock.querySelector<HTMLButtonElement>(
-                        ".add-context-button"
-                    );
-                    if (firstButton) {
-                        e.preventDefault();
-                        firstButton.focus();
-                        clearKeyboardFocusClasses();
-                        firstButton.classList.add("keyboard-focused");
+                if (key === 'ArrowRight' && currentIndex < buttons.length - 1) {
+                    focusElement(buttons[currentIndex + 1]);
+                } else if (key === 'ArrowLeft') {
+                    if (currentIndex > 0) {
+                        focusElement(buttons[currentIndex - 1]);
+                    } else if (currentIndex === 0) {
+                        // From the first button, go back to the prompt
+                        const promptInput = inputBlock.querySelector<HTMLInputElement>(".input-field");
+                        focusElement(promptInput);
                     }
                 }
             }
         }
-
-
     };
-
-
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLButtonElement>) => {
         clearKeyboardFocusClasses();
-        const element = e.currentTarget as HTMLElement;
-        element.classList.add("keyboard-focused");
+        e.currentTarget.classList.add("keyboard-focused");
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLButtonElement>) => {
-        const element = e.currentTarget as HTMLElement;
-        element.classList.remove("keyboard-focused");
+        e.currentTarget.classList.remove("keyboard-focused");
     };
 
     return (
